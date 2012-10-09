@@ -217,7 +217,7 @@ class WebSocket(object):
         This method is blocking and should likely be run
         in a thread.
         """
-        self.sock.setblocking(True)
+        self.sock.settimeout(5.0) #setblocking(True)
         s = self.stream
         try:
             self.opened()
@@ -226,9 +226,13 @@ class WebSocket(object):
             process = self.process
             
             while not self.terminated:
-                bytes = sock.recv(self.reading_buffer_size)
-                if not process(bytes):
-                    break
+                try:
+                    bytes = sock.recv(self.reading_buffer_size)
+                except socket.timeout:
+                    pass
+                else:
+                    if not process(bytes):
+                        break
         finally:
             self.client_terminated = self.server_terminated = True
             
